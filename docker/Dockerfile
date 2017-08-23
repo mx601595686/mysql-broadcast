@@ -29,4 +29,6 @@ RUN curl -SLO "http://cdn.npm.taobao.org/dist/node/latest/node-v$NODE_VERSION-li
   && rm "node-v$NODE_VERSION-linux-x64.tar.xz" \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
-CMD [ "bash" ]
+ENTRYPOINT [ "/usr/local/bin/node" ]
+
+CMD [ "/app/" ]
