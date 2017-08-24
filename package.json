@@ -1,22 +1,39 @@
 {
-  "name": "mysql-broadcast",
-  "version": "0.0.1",
-  "description": "s",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mx601595686/mysql-broadcast.git"
-  },
-  "keywords": [
-    "s"
-  ],
-  "author": "wujingtao",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mx601595686/mysql-broadcast/issues"
-  },
-  "homepage": "https://github.com/mx601595686/mysql-broadcast#readme"
+    "name": "mysql-broadcast",
+    "version": "0.0.1",
+    "description": "listen table changing. broadcast client message",
+    "main": "./bin/index.js",
+    "engines": {
+        "node": ">=7.0.0"
+    },
+    "scripts": {
+        "test": "./node_modules/.bin/mocha --compilers ts:ts-node/register,tsx:ts-node/register",
+        "compile": "./node_modules/.bin/gulp compile"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mx601595686/mysql-broadcast.git"
+    },
+    "keywords": [
+        "mysql",
+        "broadcast"
+    ],
+    "author": "wujingtao",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mx601595686/mysql-broadcast/issues"
+    },
+    "homepage": "https://github.com/mx601595686/mysql-broadcast#readme",
+    "devDependencies": {
+        "@types/expect.js": "^0.3.29",
+        "@types/mocha": "^2.2.41",
+        "@types/node": "^7.0.13",
+        "expect.js": "^0.3.1",
+        "gulp": "^3.9.1",
+        "gulp-sourcemaps": "^2.4.1",
+        "gulp-typescript": "^3.1.5",
+        "mocha": "^3.2.0",
+        "typescript": "^2.2.2",
+        "ts-node": "^3.0.4"
+    }
 }
