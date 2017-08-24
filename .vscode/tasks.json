@@ -4,10 +4,25 @@
     "version": "2.0.0",
     "tasks": [
         {
-            // 启动程序 (没有权限的话，将当前用户加入到docker组中)
-            "taskName": "debug-start",
+            // (没有权限的话，将当前用户加入到docker组中)
+            "taskName": "构建镜像",
             "type": "shell",
-            "command": "docker run -p 192.168.232.190:3306:3306 --rm -v ${workspaceRoot}/app:/app test"
+            "command": "docker build -t mysql-broadcast ."
+        },
+        {
+            "taskName": "创建新容器",
+            "type": "shell",
+            "command": "docker create --name mbc -p 192.168.232.190:3306:3306 -v ${workspaceRoot}/bin:/app mysql-broadcast"
+        },
+        {
+            "taskName": "编译",
+            "type": "shell",
+            "command": "npm run compile"
+        },
+        {
+            "taskName": "测试",
+            "type": "shell",
+            "command": "npm run test"
         }
     ]
 }

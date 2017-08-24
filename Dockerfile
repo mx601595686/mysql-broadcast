@@ -31,4 +31,7 @@ RUN curl -SLO "http://cdn.npm.taobao.org/dist/node/latest/node-v$NODE_VERSION-li
 
 ENTRYPOINT [ "/usr/local/bin/node" ]
 
+# 复制编译后的代码
+COPY bin /app
+
 CMD [ "/app/" ]
