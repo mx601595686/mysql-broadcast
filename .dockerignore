@@ -1,3 +1,4 @@
 *
 !mysql-udf-http.so
+!package.json
 !bin

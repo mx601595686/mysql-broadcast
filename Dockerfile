@@ -34,4 +34,8 @@ ENTRYPOINT [ "/usr/local/bin/node" ]
 # 复制编译后的代码
 COPY bin /app
 
+# 用于安装以来
+COPY package.json /app
+RUN cd /app && npm install --production
+
 CMD [ "/app/" ]

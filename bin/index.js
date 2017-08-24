@@ -1,2 +1,8 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const DbChangeListener_1 = require("./DbChangeListener/DbChangeListener");
 console.log('hello world');
+let a = new DbChangeListener_1.default();
+a.start();
+
+//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGV4LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsMEVBQW1FO0FBRW5FLE9BQU8sQ0FBQyxHQUFHLENBQUMsYUFBYSxDQUFDLENBQUE7QUFDMUIsSUFBSSxDQUFDLEdBQUcsSUFBSSwwQkFBZ0IsRUFBRSxDQUFDO0FBQy9CLENBQUMsQ0FBQyxLQUFLLEVBQUUsQ0FBQyIsImZpbGUiOiJpbmRleC5qcyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBEYkNoYW5nZUxpc3RlbmVyIGZyb20gXCIuL0RiQ2hhbmdlTGlzdGVuZXIvRGJDaGFuZ2VMaXN0ZW5lclwiO1xuXG5jb25zb2xlLmxvZygnaGVsbG8gd29ybGQnKVxubGV0IGEgPSBuZXcgRGJDaGFuZ2VMaXN0ZW5lcigpO1xuYS5zdGFydCgpOyJdfQ==
