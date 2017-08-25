@@ -4,7 +4,17 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
+        {
+            // 容器中的node要使用 node --inspect-brk=0.0.0.0:9229 来启动调试
+            "type": "node",
+            "request": "attach",
+            "name": "docker 调试",
+            "address": "localhost",
+            "port": 9229,
+            "protocol": "inspector",
+            "sourceMaps": true,
+            "restart": true
+        },
         {
             "type": "node",
             "request": "launch",
