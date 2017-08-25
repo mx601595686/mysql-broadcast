@@ -10,11 +10,6 @@
             "command": "docker build -t mysql-broadcast ."
         },
         {
-            "taskName": "创建新容器",
-            "type": "shell",
-            "command": "docker rm mbc ; docker create -it --name mbc -p 192.168.232.190:3306:3306 -v ${workspaceRoot}/bin:/app/bin mysql-broadcast"
-        },
-        {
             "taskName": "编译",
             "type": "shell",
             "command": "npm run compile"
