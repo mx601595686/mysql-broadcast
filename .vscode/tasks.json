@@ -12,7 +12,7 @@
         {
             "taskName": "创建新容器",
             "type": "shell",
-            "command": "docker create --name mbc -p 192.168.232.190:3306:3306 -v ${workspaceRoot}/bin:/app mysql-broadcast"
+            "command": "docker rm mbc ; docker create -it --name mbc -p 192.168.232.190:3306:3306 -v ${workspaceRoot}/bin:/app/bin mysql-broadcast"
         },
         {
             "taskName": "编译",

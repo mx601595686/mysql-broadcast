@@ -31,11 +31,11 @@ RUN curl -SLO "http://cdn.npm.taobao.org/dist/node/latest/node-v$NODE_VERSION-li
 
 ENTRYPOINT [ "/usr/local/bin/node" ]
 
-# 复制编译后的代码
-COPY bin /app
-
-# 用于安装以来
+# 用于安装依赖
 COPY package.json /app
 RUN cd /app && npm install --production
+
+# 复制编译后的代码
+COPY bin /app/bin
 
 CMD [ "/app/" ]
