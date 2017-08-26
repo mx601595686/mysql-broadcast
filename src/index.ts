@@ -14,7 +14,10 @@ const serviceModules = [
 // 实例化模块
 const services = serviceModules.map(item => new item());
 
-// 启动服务
+/**
+ * 启动服务
+ * 启动时按照serviceModules数组的顺序进行启动，如果中途启动失败则关闭已启动的服务
+ */
 async function startServices() {
     log.l('开始启动MySQL-broadcast');
 

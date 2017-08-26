@@ -2,6 +2,7 @@ import BaseModule from "../common/BaseModule";
 import child_process = require('child_process');
 import mysql = require('mysql');
 import log from '../common/Log';
+
 /**
  * mysql 初始化器
  * 
@@ -14,16 +15,20 @@ export default class MysqlInitializer extends BaseModule {
     private _mysqld: child_process.ChildProcess;
     private _mysql: mysql.IConnection;
 
-    start(): Promise<void> {
-        return this.startMysql().then(this.checkUDF.bind(this));
+    get name() {
+        return `MySQL初始化器(${super.name})`;
+    }
+
+    async start(): Promise<void> {
+        await this.startMysql();
+        await this.checkUDF();
     }
 
     // 启动mysql
     private startMysql(): Promise<void> {
         return new Promise((resolve, reject) => {
-            log.l('开始尝试启动MySQL服务');
 
-            // 启动mysqld服务
+            log.l('启动MySQL Deamon');
             this._mysqld = child_process.spawn('/usr/local/bin/docker-entrypoint.sh', ["mysqld"]);
 
             // 用于测试打印
@@ -54,7 +59,8 @@ export default class MysqlInitializer extends BaseModule {
                         if (err) {
                             log.e(`第${retry}次尝试连接失败: `, err);
                         } else {
-                            log.l('mysql启动成功！成功连接到mysql');
+                            log.l('MySQL Deamon启动成功！')
+                            log.l('成功连接到MySQL！');
 
                             //保存连接
                             this._mysql = con;
@@ -68,11 +74,8 @@ export default class MysqlInitializer extends BaseModule {
                         }
                     });
                 } else {
-                    log.e('启动mysqld服务失败');
                     clearInterval(timer);
-
-                    //清理资源
-                    this.destroy().then(reject);
+                    reject('无法连接到MySQL，超过了重试次数');
                 }
             }, 10000);
         });
