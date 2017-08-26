@@ -25,7 +25,7 @@ async function startServices() {
                 log.e(m.constructor.name, ': ', error);
             });
         } catch (error) {
-            log.e('启动失败：', m.constructor.name, ': ', error)
+            log.e('启动失败：', m.constructor.name, ': ', error);
             break;
         }
     }
@@ -46,7 +46,10 @@ async function stopServices() {
     }
 
     log.l('成功关闭MySQL-broadcast');
-    
+
     //退出程序
     process.exit();
 }
+
+// 当收到终止信号时
+process.once('SIGTERM', stopServices);
