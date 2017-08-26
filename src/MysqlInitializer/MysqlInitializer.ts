@@ -51,7 +51,9 @@ export default class MysqlInitializer extends BaseModule {
                     });
 
                     con.connect((err) => {
-                        if (!err) {
+                        if (err) {
+                            log.e(`第${retry}次尝试连接失败: `, err);
+                        } else {
                             log.l('mysql启动成功！成功连接到mysql');
 
                             //保存连接
@@ -63,8 +65,6 @@ export default class MysqlInitializer extends BaseModule {
 
                             clearInterval(timer);
                             resolve();
-                        } else {
-                            log.e(`第${retry}次尝试连接失败: `, err);
                         }
                     });
                 } else {
@@ -93,6 +93,7 @@ export default class MysqlInitializer extends BaseModule {
                     resolve();
                 } else {
                     log.l('开始配置mysql-udf-http');
+                    
                     this._mysql.query(`
                     # 删除已有的
                         DROP FUNCTION IF EXISTS http_get;
@@ -123,6 +124,8 @@ export default class MysqlInitializer extends BaseModule {
     destroy(): Promise<void> {
         return new Promise((resolve, reject) => {
             log.l('正在终止mysql服务');
+
+            if (this._mysql) this._mysql.end();
             this._mysqld.kill();
 
             this._mysqld.once('exit', (err, code) => {
@@ -137,7 +140,7 @@ export default class MysqlInitializer extends BaseModule {
             setTimeout(function () {
                 log.w('终止mysql服务失败：终止超时');
                 resolve();
-            }, 3000);
+            }, 5000);
         });
     }
 
