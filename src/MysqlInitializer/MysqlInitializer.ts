@@ -93,7 +93,7 @@ export default class MysqlInitializer extends BaseModule {
                     resolve();
                 } else {
                     log.l('开始配置mysql-udf-http');
-                    
+
                     this._mysql.query(`
                     # 删除已有的
                         DROP FUNCTION IF EXISTS http_get;
@@ -123,24 +123,28 @@ export default class MysqlInitializer extends BaseModule {
     // 终止mysql 运行
     destroy(): Promise<void> {
         return new Promise((resolve, reject) => {
-            log.l('正在终止mysql服务');
+            if (this._mysqld) {
+                log.l('正在终止mysql服务');
 
-            if (this._mysql) this._mysql.end();
-            this._mysqld.kill();
+                if (this._mysql) this._mysql.end();
+                this._mysqld.kill();
 
-            this._mysqld.once('exit', (err, code) => {
-                if (err) {
-                    log.w('终止mysql服务失败：', err);
-                } else {
-                    log.l('mysql服务已终止');
-                }
+                this._mysqld.once('exit', (err, code) => {
+                    if (err) {
+                        log.w('终止mysql服务失败：', err);
+                    } else {
+                        log.l('mysql服务已终止');
+                    }
+                    resolve();
+                });
+
+                setTimeout(function () {
+                    log.w('终止mysql服务失败：终止超时');
+                    resolve();
+                }, 5000);
+            } else {
                 resolve();
-            });
-
-            setTimeout(function () {
-                log.w('终止mysql服务失败：终止超时');
-                resolve();
-            }, 5000);
+            }
         });
     }
 
