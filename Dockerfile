@@ -42,4 +42,20 @@ RUN npm install --production
 # 复制编译后的代码
 COPY bin /app/bin
 
+# 健康检查
+COPY health_check.sh /app
+
+HEALTHCHECK \
+# 每次检查的间隔时间
+    --interval=1m \
+# 单次检查的超时时长
+    --timeout=30s \
+# 这个可以理解为在开始正式检查之前容器所需要的启动时间
+    --start-period=1m \
+# 连续多少次检查失败可判定该服务是unhealthy
+    --retries=3 \
+# 调用程序所暴露出的健康检查接口
+    CMD health_check.sh
+
+
 CMD [ "/app/" ]

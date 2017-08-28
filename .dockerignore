@@ -1,4 +1,5 @@
 *
 !mysql-udf-http.so
 !package.json
+!health_check.sh
 !bin
