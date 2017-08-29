@@ -1,5 +1,4 @@
 *
-!mysql-udf-http.so
 !package.json
-!health_check.sh
+!node_modules/service-starter/docker/health_check.sh
 !bin
