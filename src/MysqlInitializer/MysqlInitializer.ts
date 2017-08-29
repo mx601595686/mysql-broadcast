@@ -15,7 +15,7 @@ export default class MysqlInitializer extends ServiceModule {
 
     async onStart(): Promise<void> {
         await this.startMysqld();
-        await this.checkUDF();
+        //await this.checkUDF();
     }
 
     // 启动MySQL Deamon
@@ -27,12 +27,12 @@ export default class MysqlInitializer extends ServiceModule {
             this._mysqld.on('error', this.emit.bind(this, 'error'));
 
             // 用于测试打印
-            /* this._mysqld.stdout.on('data', (data) => {
+            this._mysqld.stdout.on('data', (data) => {
                 log.l(`mysqld-stdout: ${data}`);
             });
             this._mysqld.stderr.on('data', (data) => {
                 log.l(`mysqld-stderr: ${data}`);
-            }); */
+            });
 
             //尝试次数
             let retry = 0;
