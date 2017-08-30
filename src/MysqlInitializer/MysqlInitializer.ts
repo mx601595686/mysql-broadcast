@@ -1,6 +1,6 @@
 import child_process = require('child_process');
 import mysql = require('mysql');
-import { log, ServiceModule, HealthStatus } from "service-starter";
+import { log, ServiceModule } from "service-starter";
 
 /**
  * MySQL初始化器     
@@ -25,17 +25,17 @@ export default class MysqlInitializer extends ServiceModule {
 
             this._mysqld = child_process.spawn('/usr/local/bin/docker-entrypoint.sh', ["mysqld"]);
             this._mysqld.on('error', this.emit.bind(this, 'error'));
-
+            resolve();
             // 用于测试打印
             this._mysqld.stdout.on('data', (data) => {
-                log.l(`mysqld-stdout: ${data}`);
+                log.l(`mysqld-out: ${data}`);
             });
             this._mysqld.stderr.on('data', (data) => {
-                log.l(`mysqld-stderr: ${data}`);
+                //log.l(`mysqld-err: ${data}`);
             });
 
             //尝试次数
-            let retry = 0;
+         /*    let retry = 0;
 
             const timer = setInterval(() => {
                 //最多尝试3次
@@ -71,7 +71,7 @@ export default class MysqlInitializer extends ServiceModule {
                     clearInterval(timer);
                     reject(new Error('无法连接到MySQL，超过了重试次数'));
                 }
-            }, 10000);
+            }, 10000); */
         });
     }
 
@@ -143,13 +143,13 @@ export default class MysqlInitializer extends ServiceModule {
     }
 
     //健康检查
-    onHealthChecking(): Promise<HealthStatus> {
-        return new Promise((resolve) => {
+    onHealthChecking(): Promise<void> {
+        return new Promise((resolve, reject) => {
             this._mysql.query('select 1', (err) => {
                 if (err) {
-                    resolve(HealthStatus.unhealthy);
+                    reject(err);
                 } else {
-                    resolve(HealthStatus.success);
+                    resolve();
                 }
             })
         });

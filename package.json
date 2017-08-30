@@ -45,6 +45,6 @@
         "koa-bodyparser": "^4.2.0",
         "lodash": "^4.17.4",
         "mysql": "^2.14.1",
-        "service-starter": "^0.1.4"
+        "service-starter": "^0.2.2"
     }
 }
