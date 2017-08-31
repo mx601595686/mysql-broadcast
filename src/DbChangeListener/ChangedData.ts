@@ -39,9 +39,6 @@ export class ChangedData {
     readonly newData: any;
 
     constructor(body: any) {
-        this.table = body.table;
-        this.triggerType = body.type;
-        this.oldData = body.old;
-        this.newData = body.new;
+        this.table = body;
     }
 }
