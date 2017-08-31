@@ -1,12 +1,18 @@
 import { ServicesManager } from "service-starter";
-import MysqlInitializer from "./MysqlInitializer/MysqlInitializer";
+
+import MysqlDaemon from "./MySQL/MysqlDaemon";
+import MysqlConnection from "./MySQL/MysqlConnection";
+import MysqlHttpPlugin from "./MySQL/MysqlHttpPlugin";
 import DbChangeListener from "./DbChangeListener/DbChangeListener";
 
 class MysqlBroadcast extends ServicesManager { }
 
 const mb = new MysqlBroadcast();
 
-mb.registerService(new MysqlInitializer());
+mb.registerService(new MysqlDaemon());
+mb.registerService(new MysqlConnection());
+mb.registerService(new MysqlHttpPlugin());
+
 mb.registerService(new DbChangeListener());
 
 mb.start();
