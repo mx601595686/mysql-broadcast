@@ -4,7 +4,6 @@
 # 使用保存在阿里云上的镜像
 FROM registry.cn-hangzhou.aliyuncs.com/wujingtao/mysql:mysql-udf-http-0.0.2
 
-
 # 安装node
 # 这个参考的是my-docker-image/nodejs/淘宝CDN.dockerfile
 
@@ -38,7 +37,6 @@ COPY bin /app/bin
 
 # 健康检查
 COPY node_modules/service-starter/docker/health_check.sh /app
-
 
 HEALTHCHECK \
 # 每次检查的间隔时间

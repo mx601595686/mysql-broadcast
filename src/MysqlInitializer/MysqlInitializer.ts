@@ -4,12 +4,12 @@ import { log, ServiceModule } from "service-starter";
 
 /**
  * MySQL初始化器     
- * 启动MySQL Deamon，创建与MySQL的连接。检查mysql-udf-http.so插件
+ * 启动MySQL Daemon,检查mysql-udf-http.so插件,创建MySQL连接。
  */
 export default class MysqlInitializer extends ServiceModule {
 
-    //MySQL Deamon进程
-    private _mysqld: child_process.ChildProcess;
+    //MySQL Daemon进程
+    private _mysqlD: child_process.ChildProcess;
     //与MySQL的连接
     private _mysql: mysql.IConnection;
 

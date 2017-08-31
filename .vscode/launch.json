@@ -14,13 +14,6 @@
             "protocol": "inspector",
             "sourceMaps": true,
             "restart": true
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "本地调试",
-            "program": "${workspaceRoot}/bin/index.js",
-            "sourceMaps": true
         }
     ]
 }
