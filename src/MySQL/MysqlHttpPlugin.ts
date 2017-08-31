@@ -37,7 +37,7 @@ export default class MysqlHttpPlugin extends ServiceModule {
                         create function http_post returns string soname 'mysql-udf-http.so';
                         create function http_put returns string soname 'mysql-udf-http.so';
                         create function http_delete returns string soname 'mysql-udf-http.so';
-                        `, err => {
+                        `, (err) => {
                             if (err) {
                                 reject(new Error('配置mysql-udf-http失败：' + err));
                             } else {

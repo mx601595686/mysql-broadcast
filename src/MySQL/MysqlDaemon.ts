@@ -19,7 +19,7 @@ export default class MysqlDaemon extends ServiceModule {
             this._mysqld = child_process.spawn('/usr/local/bin/docker-entrypoint.sh', ["mysqld"]);
             this._mysqld.on('error', this.emit.bind(this, 'error'));
 
-            // 当mysqld的标准输出流不在输出时，判定为启动成功了
+            // 当mysqld的标准输出流不再输出时，判定为启动成功了
             let timer: NodeJS.Timer;
             //是否已经启动了
             let started = false;
@@ -50,9 +50,8 @@ export default class MysqlDaemon extends ServiceModule {
     onStop(): Promise<void> {
         return new Promise((resolve, reject) => {
             if (this._mysqld) {
-
-                this._mysqld.kill();
                 this._mysqld.once('exit', resolve);
+                this._mysqld.kill();
 
                 //设置停止超时
                 setTimeout(() => {
