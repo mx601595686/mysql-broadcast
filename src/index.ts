@@ -9,10 +9,12 @@ class MysqlBroadcast extends ServicesManager { }
 
 const mb = new MysqlBroadcast();
 
+//MySQL
 mb.registerService(new MysqlDaemon());
 mb.registerService(new MysqlConnection());
 mb.registerService(new MysqlHttpPlugin());
 
+//表变化监听器
 mb.registerService(new DbChangeListener());
 
 mb.start();
