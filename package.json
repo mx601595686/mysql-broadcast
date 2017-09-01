@@ -41,6 +41,6 @@
     "dependencies": {
         "mysql": "^2.14.1",
         "raw-body": "^2.3.0",
-        "service-starter": "^0.2.6"
+        "service-starter": "^0.2.7"
     }
 }
