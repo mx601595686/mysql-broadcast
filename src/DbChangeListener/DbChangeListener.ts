@@ -59,7 +59,7 @@ export default class DbChangeListener extends ServiceModule {
 
     onHealthChecking(): Promise<void> {
         return new Promise((resolve, reject) => {
-            http.get('localhost:2233', (res) => {
+            http.get('http://localhost:2233', (res) => {
                 if (res.statusCode === 403) {
                     resolve();
                 } else {
