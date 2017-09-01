@@ -1,6 +1,6 @@
 import http = require('http');
 import raw = require('raw-body');
-import { ServiceModule } from "service-starter";
+import { ServiceModule, log } from "service-starter";
 
 import { ChangedData } from './ChangedData';
 
@@ -54,6 +54,20 @@ export default class DbChangeListener extends ServiceModule {
             } else {
                 resolve();
             }
+        });
+    }
+
+    onHealthChecking(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            http.get('localhost:2233', (res) => {
+                if (res.statusCode === 403) {
+                    resolve();
+                } else {
+                    reject(new Error('程序逻辑出现错误，期望收到的状态码是403，而实际上收到的却是：' + res.statusCode));
+                }
+            }).on('error', err => {
+                reject(new Error('无法连接到 localhost:2233。服务器无响应。' + err));
+            });
         });
     }
 

@@ -53,12 +53,7 @@ export default class MysqlConnection extends ServiceModule {
                 } else {
                     clearInterval(timer);
 
-                    reject(new Error(
-                        log.s1.format(
-                            `服务：${this.name}`,
-                            '无法连接到MySQL，超过了重试次数'
-                        )
-                    ));
+                    reject(new Error('无法连接到MySQL，超过了重试次数'));
                 }
             }
 
@@ -77,12 +72,7 @@ export default class MysqlConnection extends ServiceModule {
                 // 关闭超时
                 setTimeout(() => {
                     this._connection = undefined;
-                    reject(new Error(
-                        log.s1.format(
-                            `服务：${this.name}`,
-                            '关闭超时'
-                        )
-                    ));
+                    reject(new Error('关闭超时'));
                 }, 10000);
             } else {
                 resolve();

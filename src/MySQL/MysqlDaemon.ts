@@ -56,12 +56,7 @@ export default class MysqlDaemon extends ServiceModule {
                 //设置停止超时
                 setTimeout(() => {
                     this._mysqld = undefined;
-                    reject(new Error(
-                        log.s1.format(
-                            `服务：${this.name}`,
-                            '关闭超时'
-                        )
-                    ));
+                    reject(new Error('关闭超时'));
                 }, 20000);
             } else {
                 resolve();
