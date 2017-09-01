@@ -38,11 +38,11 @@ export default class MysqlDaemon extends ServiceModule {
 
             // 打印标准输出流
             this._mysqld.stdout.on('data', (data) => {
-                log.l(`mysqld-out: ${data}`);
+                log.l(`mysqld-out: ${data.toString().trim()}`);
                 judge();
             });
             /* this._mysqld.stderr.on('data', (data) => {
-                log.l(`mysqld-err: ${data}`);
+                log.l(`mysqld-err: ${data.toString().trim()}`);
             }); */
         });
     }

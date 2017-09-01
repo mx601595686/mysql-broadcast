@@ -16,16 +16,24 @@ export default class MysqlHttpPlugin extends ServiceModule {
 
     onStart(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this._connection.query("select * from mysql.func where dl = 'mysql-udf-http.so'", (err, result, fields) => {
-                if (err) {
-                    reject(new Error('检查mysql-udf-http配置时发生异常：' + err));
-                }
-                else if (result.length === 4) {
-                    resolve();
-                } else {
-                    log.s2.l(`服务：${this.name}`, '开始配置', 'mysql-udf-http');
+            if (this._connection === undefined) {
+                reject(new Error(
+                    log.s1.format(
+                        `服务：${this.name}`,
+                        '无法连接到MySQL，因为连接还未打开'
+                    )
+                ));
+            } else {
+                this._connection.query("select * from mysql.func where dl = 'mysql-udf-http.so'", (err, result, fields) => {
+                    if (err) {
+                        reject(new Error('检查mysql-udf-http配置时发生异常：' + err));
+                    }
+                    else if (result.length === 4) {
+                        resolve();
+                    } else {
+                        log.s2.l(`服务：${this.name}`, '开始配置', 'mysql-udf-http');
 
-                    this._connection.query(`
+                        this._connection.query(`
                         # 删除已有的
                         DROP FUNCTION IF EXISTS http_get;
                         DROP FUNCTION IF EXISTS http_post;
@@ -38,16 +46,17 @@ export default class MysqlHttpPlugin extends ServiceModule {
                         create function http_put returns string soname 'mysql-udf-http.so';
                         create function http_delete returns string soname 'mysql-udf-http.so';
                         `, (err) => {
-                            if (err) {
-                                reject(new Error('配置mysql-udf-http失败：' + err));
-                            } else {
-                                log.s2.l(`服务：${this.name}`, '配置成功', 'mysql-udf-http');
-                                resolve();
+                                if (err) {
+                                    reject(new Error('配置mysql-udf-http失败：' + err));
+                                } else {
+                                    log.s2.l(`服务：${this.name}`, '成功配置', 'mysql-udf-http');
+                                    resolve();
+                                }
                             }
-                        }
-                    );
-                }
-            });
+                        );
+                    }
+                });
+            }
         });
     }
 }

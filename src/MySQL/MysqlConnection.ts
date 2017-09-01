@@ -91,11 +91,7 @@ export default class MysqlConnection extends ServiceModule {
         return new Promise((resolve, reject) => {
             if (this._connection) {
                 this._connection.query('select 1', (err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
+                    err ? reject(err) : resolve();
                 });
             } else {
                 resolve();
