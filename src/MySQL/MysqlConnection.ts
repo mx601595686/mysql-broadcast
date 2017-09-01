@@ -11,8 +11,12 @@ export default class MysqlConnection extends ServiceModule {
      * 
      * @readonly
      */
-    get connection() {
-        return this._connection;
+    get connection(): mysql.IConnection {
+        if (this._connection === undefined) {
+            throw new Error(`有服务在${this.name}还未启动之前尝试获取MySQL连接`);
+        }
+
+        return this._connection as any;
     }
     private _connection: mysql.IConnection | undefined;
 
