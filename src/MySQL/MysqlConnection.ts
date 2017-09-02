@@ -16,7 +16,7 @@ export default class MysqlConnection extends ServiceModule {
             throw new Error(`有服务在${this.name}还未启动之前尝试获取MySQL连接`);
         }
 
-        return this._connection as any;
+        return this._connection;
     }
     private _connection: mysql.IConnection | undefined;
 
