@@ -11,7 +11,7 @@ import TriggerType from './TriggerType';
  * @class TriggerCreator
  * @extends {ServiceModule}
  */
-export class TriggerCreator extends ServiceModule {
+export default class TriggerCreator extends ServiceModule {
 
     private get _connection() {
         return (this.services.MysqlConnection as MysqlConnection).connection;
@@ -23,7 +23,8 @@ export class TriggerCreator extends ServiceModule {
     }
 
     onStart(): Promise<void> {
-        return Promise.resolve();
+        return this.createInsertTrigger('test', 'test_t');
+        //return Promise.resolve();
     }
 
     /**
@@ -50,20 +51,20 @@ export class TriggerCreator extends ServiceModule {
      */
     createInsertTrigger(schema: string, table: String): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (_.has(this._tableInfo, [schema, table])) {
-                reject(new Error(`数据库[${schema}] 或表 [${table}] 不存在，无法创建触发器`));
+            if (!_.has(this._tableInfo, [schema, table])) {
+                reject(new Error(`数据库[${schema}] 下的表 [${table}] 不存在，无法创建触发器`));
             } else {
                 const serializedSQL = this._statement_serialize_data(schema, table, TriggerType.insert);
-                
-                const sql = " \
-                    DELIMITER || \
-                    DROP TRIGGER IF EXISTS `"+ schema + "`.`__mb__" + table + "__insert__trigger`|| \
-                    CREATE DEFINER = CURRENT_USER TRIGGER `"+ schema + "`.`__mb__" + table + "__insert__trigger` AFTER INSERT ON `" + table + "` FOR EACH ROW \
-                    BEGIN \
-                         \
-                    END|| \
-                    DELIMITER ; \
-                ";
+
+                // 不需要替换MySQL分隔符，否则会出错
+                const sql = `
+                    DROP TRIGGER IF EXISTS \`${schema}\`.\`__mb__${table}__insert__trigger\`;
+                    CREATE DEFINER = CURRENT_USER TRIGGER \`${schema}\`.\`__mb__${table}__insert__trigger\` AFTER INSERT ON \`${table}\` FOR EACH ROW
+                    BEGIN
+                        ${serializedSQL.serialize}
+                        ${serializedSQL.http}
+                    END
+                `;
 
                 this._connection.query(sql, (err, result) => {
                     err ? reject(err) : resolve(result);
@@ -98,16 +99,16 @@ export class TriggerCreator extends ServiceModule {
     private _statement_serialize_data(schema: string, table: String, type: TriggerType) {
 
         const args = (isNew: boolean) => {
+            // 这里reduce方法必须提供一个初始值，否则当数组元素只有一个时，reduce方法不会执行
             return Object.keys(_.get(this._tableInfo, [schema, table]))
                 .reduce((pre, cur, index) => {
-                    const result = `, ${cur}, ${isNew ? '`NEW`' : '`OLD`'}.${cur}`;
-
+                    const result = `, '${cur}', ${isNew ? '`NEW`' : '`OLD`'}.\`${cur}\``;
                     if (index === 0) {    //第一个前面不带逗号
                         return pre + result.slice(1);
                     } else {
                         return pre + result;
                     }
-                });
+                }, '');
         }
 
         //insert 触发器中没有old，delete触发器中没有new

@@ -27,17 +27,17 @@ export default class MysqlHttpPlugin extends ServiceModule {
                     log.s1.l(`服务：${this.name}`, '开始配置：', 'mysql-udf-http');
                     
                     this._connection.query(`
-                    # 删除已有的
-                    DROP FUNCTION IF EXISTS http_get;
-                    DROP FUNCTION IF EXISTS http_post;
-                    DROP FUNCTION IF EXISTS http_put;
-                    DROP FUNCTION IF EXISTS http_delete;
-                    
-                    # 创建
-                    create function http_get returns string soname 'mysql-udf-http.so';
-                    create function http_post returns string soname 'mysql-udf-http.so';
-                    create function http_put returns string soname 'mysql-udf-http.so';
-                    create function http_delete returns string soname 'mysql-udf-http.so';
+                        # 删除已有的
+                        DROP FUNCTION IF EXISTS http_get;
+                        DROP FUNCTION IF EXISTS http_post;
+                        DROP FUNCTION IF EXISTS http_put;
+                        DROP FUNCTION IF EXISTS http_delete;
+                        
+                        # 创建
+                        create function http_get returns string soname 'mysql-udf-http.so';
+                        create function http_post returns string soname 'mysql-udf-http.so';
+                        create function http_put returns string soname 'mysql-udf-http.so';
+                        create function http_delete returns string soname 'mysql-udf-http.so';
                     `, (err) => {
                             if (err) {
                                 reject(new Error('配置mysql-udf-http失败：' + err));
