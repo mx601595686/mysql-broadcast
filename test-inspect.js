@@ -10,4 +10,4 @@ setInterval(() => {
             console.error(stderr)
         }
     })
-}, 2000);
+}, 5000);
