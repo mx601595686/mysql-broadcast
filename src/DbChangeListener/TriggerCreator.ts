@@ -38,7 +38,6 @@ export default class TriggerCreator extends ServiceModule {
      * @returns {Promise<void>} 
      */
     async createInsertTrigger(schema: string, table: String): Promise<void> {
-        this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.insert);
         const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__insert__trigger\``;
@@ -66,7 +65,6 @@ export default class TriggerCreator extends ServiceModule {
      * @returns {Promise<void>} 
      */
     async createDeleteTrigger(schema: string, table: String): Promise<void> {
-        this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.delete);
         const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__delete__trigger\``;
@@ -94,7 +92,6 @@ export default class TriggerCreator extends ServiceModule {
      * @returns {Promise<void>} 
      */
     async createUpdateTrigger(schema: string, table: String, fields: string[]): Promise<void> {
-        this._check_table_and_fields_exists(schema, table, fields);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.update);
         const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__update__trigger\``;
@@ -127,25 +124,36 @@ export default class TriggerCreator extends ServiceModule {
     }
 
     /**
-     * 检查要创建触发器的表是否存在，不存在就抛出异常
+     * 删除插入记录触发器 
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
      */
-    private _check_table_and_fields_exists(schema: string, table: String, fields: string[] = []) {
-        const tb: any = _.get(this._tableInfo, [schema, table]);
+    async removeInsertTrigger(schema: string, table: String): Promise<void> {
+        const triggerName = `\`${schema}\`.\`__mb__${table}__insert__trigger\``;
+        await this._mysqlCon.query(`DROP TRIGGER IF EXISTS ${triggerName};`);
+    }
 
-        //检查数据库是否存在
-        if (tb === undefined) {
-            throw new Error(`数据库[${schema}] 下的表 [${table}] 不存在，无法创建Trigger`);
-        }
+    /**
+     * 移除删除记录触发器 
+     * 
+     * @param {string} schema 数据库名
+     * @param {String} table 表名
+     */
+    async removeDeleteTrigger(schema: string, table: String): Promise<void> {
+        const triggerName = `\`${schema}\`.\`__mb__${table}__delete__trigger\``;
+        await this._mysqlCon.query(`DROP TRIGGER IF EXISTS ${triggerName};`);
+    }
 
-        //检查相关字段是否存在
-        fields.forEach(item => {
-            if (tb[item] !== true) {
-                throw new Error(`数据库[${schema}] 下的表 [${table}] 下的字段 [${item}] 不存在，无法创建Trigger`);
-            }
-        });
+    /**
+     * 删除更新记录触发器 
+     * 
+     * @param {string} schema 数据库名
+     * @param {String} table 表名
+     */
+    async removeUpdateTrigger(schema: string, table: String): Promise<void> {
+        const triggerName = `\`${schema}\`.\`__mb__${table}__update__trigger\``;
+        await this._mysqlCon.query(`DROP TRIGGER IF EXISTS ${triggerName};`);
     }
 
     /**
