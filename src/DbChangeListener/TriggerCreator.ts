@@ -25,11 +25,12 @@ export default class TriggerCreator extends ServiceModule {
     async onStart(): Promise<void> {
         await this.createInsertTrigger('test', 'test_t');
         await this.createDeleteTrigger('test', 'test_t');
+        await this.createUpdateTrigger('test', 'test_t', ['id']);
         //return Promise.resolve();
     }
 
     /**
-     * 创建插入记录触发器
+     * 创建插入记录触发器   
      * 创建的Trigger名称为：__mb__表名__insert__trigger
      * 
      * @param {string} schema 数据库名
@@ -37,7 +38,7 @@ export default class TriggerCreator extends ServiceModule {
      * @returns {Promise<void>} 
      */
     async createInsertTrigger(schema: string, table: String): Promise<void> {
-        this._check_table_exists(schema, table);
+        this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.insert);
         const send = this._statement_send_data(schema, table);
         const triggerName = `\`${schema}\`.\`__mb__${table}__insert__trigger\``;
@@ -47,6 +48,7 @@ export default class TriggerCreator extends ServiceModule {
             DROP TRIGGER IF EXISTS ${triggerName};
             CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER INSERT ON \`${table}\` FOR EACH ROW
             BEGIN
+                ${serialized.changedFields}
                 ${serialized.variable}
                 ${serialized.toArray}
                 ${send}
@@ -57,7 +59,7 @@ export default class TriggerCreator extends ServiceModule {
     }
 
     /**
-     * 创建删除记录触发器
+     * 创建删除记录触发器   
      * 创建的Trigger名称为：__mb__表名__delete__trigger
      * 
      * @param {string} schema 数据库名
@@ -65,7 +67,7 @@ export default class TriggerCreator extends ServiceModule {
      * @returns {Promise<void>} 
      */
     async createDeleteTrigger(schema: string, table: String): Promise<void> {
-        this._check_table_exists(schema, table);
+        this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.delete);
         const send = this._statement_send_data(schema, table);
         const triggerName = `\`${schema}\`.\`__mb__${table}__delete__trigger\``;
@@ -74,6 +76,7 @@ export default class TriggerCreator extends ServiceModule {
             DROP TRIGGER IF EXISTS ${triggerName};
             CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER DELETE ON \`${table}\` FOR EACH ROW
             BEGIN
+                ${serialized.changedFields}
                 ${serialized.variable}
                 ${serialized.toArray}
                 ${send}
@@ -84,17 +87,46 @@ export default class TriggerCreator extends ServiceModule {
     }
 
     /**
-     * 创建字段更新触发器
+     * 创建字段更新触发器   
+     * 创建的Trigger名称为：__mb__表名__update__trigger
      * 
      * @param schema 数据库名
      * @param table 表名
      * @param fields 要监控变化的字段列表
      * @returns {Promise<void>} 
      */
-    createUpdateTrigger(schema: string, table: String, fields: string[]): Promise<void> {
-        return new Promise((resolve, reject) => {
+    async createUpdateTrigger(schema: string, table: String, fields: string[]): Promise<void> {
+        this._check_table_and_fields_exists(schema, table, fields);
+        const serialized = this._statement_serialize_data(schema, table, TriggerType.update);
+        const send = this._statement_send_data(schema, table);
+        const triggerName = `\`${schema}\`.\`__mb__${table}__update__trigger\``;
 
-        });
+        // 判定字段是否改变的sql。如果发生了变化将变化字段的字段名加入@changed_fields数组中
+        const fieldsIsChange = fields.reduce((pre, cur) => {
+            return `
+                ${pre}
+                IF \`NEW\`.\`${cur}\` != \`OLD\`.\`${cur}\` THEN
+                    SET @changed_fields = JSON_ARRAY_APPEND(@changed_fields, '$', '${cur}');
+                END IF;
+            `;
+        }, '');
+
+        // 确保所关注字段的值发生改变之后再发送数据
+        const sql = `
+            DROP TRIGGER IF EXISTS ${triggerName};
+            CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER UPDATE ON \`${table}\` FOR EACH ROW
+            BEGIN
+                ${serialized.changedFields}
+                ${fieldsIsChange}
+                IF JSON_LENGTH(@changed_fields) > 0 THEN
+                    ${serialized.variable}
+                    ${serialized.toArray}
+                    ${send}
+                END IF;
+            END
+        `;
+
+        await this._mysqlCon.query(sql);
     }
 
     /**
@@ -103,10 +135,20 @@ export default class TriggerCreator extends ServiceModule {
      * @param {string} schema 数据库名
      * @param {String} table 表名
      */
-    private _check_table_exists(schema: string, table: String) {
-        if (!_.has(this._tableInfo, [schema, table])) {
+    private _check_table_and_fields_exists(schema: string, table: String, fields: string[] = []) {
+        const tb: any = _.get(this._tableInfo, [schema, table]);
+
+        //检查数据库是否存在
+        if (tb === undefined) {
             throw new Error(`数据库[${schema}] 下的表 [${table}] 不存在，无法创建Trigger`);
         }
+
+        //检查相关字段是否存在
+        fields.forEach(item => {
+            if (tb[item] !== true) {
+                throw new Error(`数据库[${schema}] 下的表 [${table}] 下的字段 [${item}] 不存在，无法创建Trigger`);
+            }
+        });
     }
 
     /**
@@ -115,7 +157,7 @@ export default class TriggerCreator extends ServiceModule {
      * 触发类型保存在 @trigger_type
      * 数据发生改变的字段 @changed_fields
      * 
-     * 返回的结果{variable：创建各个字段的sql，toArray：将各个字段结合成一个数组的sql}
+     * 返回的结果{variable：创建各个字段的sql，changedFields:保存值发生改变了的字段的字段名, toArray：将各个字段结合成一个数组的sql}
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
@@ -143,10 +185,10 @@ export default class TriggerCreator extends ServiceModule {
         return {
             variable: `
                 set @trigger_type = ${type};
-                set @changed_fields = JSON_ARRAY();
                 ${newData}
                 ${oldData}
             `,
+            changedFields: "set @changed_fields = JSON_ARRAY();",
             toArray: "set @value = JSON_ARRAY(@trigger_type, @changed_fields, @new_data, @old_data);"
         }
     }
