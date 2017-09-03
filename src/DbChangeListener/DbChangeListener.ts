@@ -2,7 +2,7 @@ import http = require('http');
 import raw = require('raw-body');
 import { ServiceModule, log } from "service-starter";
 
-import { ChangedData } from './ChangedData';
+import ChangedData from './ChangedData';
 
 /**
  * 数据表变化监听器。   
@@ -19,11 +19,10 @@ export default class DbChangeListener extends ServiceModule {
                     try {
                         const body = await raw(req, {
                             length: req.headers['content-length'],
-                            limit: '3mb',   //最大数据大小3兆
                             encoding: true
                         });
 
-                        //分发处理接收到的数据
+                        //分发接收到的数据
                         this.dispatch(new ChangedData(body));
                         res.statusCode = 200;
                     } catch (err) {
@@ -38,6 +37,7 @@ export default class DbChangeListener extends ServiceModule {
                 res.end(res.statusCode.toString());
             });
 
+            this._http.on('error', this.emit.bind(this, 'error'));
             this._http.listen(2233, (err: Error) => {
                 err ? reject(err) : resolve();
             });
@@ -50,7 +50,7 @@ export default class DbChangeListener extends ServiceModule {
                 this._http.close((err: Error) => {
                     this._http = undefined;
                     err ? reject(err) : resolve();
-                })
+                });
             } else {
                 resolve();
             }
@@ -66,7 +66,7 @@ export default class DbChangeListener extends ServiceModule {
                     reject(new Error('程序逻辑出现错误，期望收到的状态码是403，而实际上收到的却是：' + res.statusCode));
                 }
             }).on('error', err => {
-                reject(new Error('无法连接到 localhost:2233。服务器无响应。' + err));
+                reject(new Error('无法连接到 localhost:2233 服务器无响应。' + err));
             });
         });
     }

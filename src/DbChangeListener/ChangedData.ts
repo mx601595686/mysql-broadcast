@@ -1,32 +1,32 @@
-/**
- * 数据改变的类型
- * 
- * @export
- * @enum {number}
- */
-export const enum TriggerType {
-    update, insert, delete
-}
+import TriggerType from "./TriggerType";
+
 
 /**
- * 在数据库中发生变化的数据
+ * 数据库中发生变化的数据
  * 
  * @export
  * @class ChangedData
  */
-export class ChangedData {
-    
+export default class ChangedData {
+    /**
+     * 发生变化的类型
+     */
+    readonly type: TriggerType;
+
+    /**
+     * 数据库名称
+     */
+    readonly schema: string;
+
     /**
      * 表名
      */
     readonly table: string;
 
     /**
-     * 发生变化的类型
-     * 
-     * @type {TriggerType}
+     * 发生改变的字段名称
      */
-    readonly triggerType: TriggerType;
+    readonly changedFields: string[];
 
     /**
      * 发生变化之前的那一行数据
@@ -39,6 +39,13 @@ export class ChangedData {
     readonly newData: any;
 
     constructor(body: any) {
-        this.table = body;
+        // 解析发来的数据
+        const data = JSON.parse(body);
+        this.type = data[0];
+        this.schema = data[1];
+        this.table = data[2];
+        this.changedFields = data[3];
+        this.newData = data[4];
+        this.oldData = data[5];
     }
 }

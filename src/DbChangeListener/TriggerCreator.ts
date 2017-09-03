@@ -40,7 +40,7 @@ export default class TriggerCreator extends ServiceModule {
     async createInsertTrigger(schema: string, table: String): Promise<void> {
         this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.insert);
-        const send = this._statement_send_data(schema, table);
+        const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__insert__trigger\``;
 
         // 不需用delimiter要来替换MySQL分隔符，否则会出错
@@ -49,7 +49,6 @@ export default class TriggerCreator extends ServiceModule {
             CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER INSERT ON \`${table}\` FOR EACH ROW
             BEGIN
                 ${serialized.changedFields}
-                ${serialized.variable}
                 ${serialized.toArray}
                 ${send}
             END
@@ -69,7 +68,7 @@ export default class TriggerCreator extends ServiceModule {
     async createDeleteTrigger(schema: string, table: String): Promise<void> {
         this._check_table_and_fields_exists(schema, table);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.delete);
-        const send = this._statement_send_data(schema, table);
+        const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__delete__trigger\``;
 
         const sql = `
@@ -77,7 +76,6 @@ export default class TriggerCreator extends ServiceModule {
             CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER DELETE ON \`${table}\` FOR EACH ROW
             BEGIN
                 ${serialized.changedFields}
-                ${serialized.variable}
                 ${serialized.toArray}
                 ${send}
             END
@@ -98,7 +96,7 @@ export default class TriggerCreator extends ServiceModule {
     async createUpdateTrigger(schema: string, table: String, fields: string[]): Promise<void> {
         this._check_table_and_fields_exists(schema, table, fields);
         const serialized = this._statement_serialize_data(schema, table, TriggerType.update);
-        const send = this._statement_send_data(schema, table);
+        const send = this._statement_send_data();
         const triggerName = `\`${schema}\`.\`__mb__${table}__update__trigger\``;
 
         // 判定字段是否改变的sql。如果发生了变化将变化字段的字段名加入@changed_fields数组中
@@ -119,7 +117,6 @@ export default class TriggerCreator extends ServiceModule {
                 ${serialized.changedFields}
                 ${fieldsIsChange}
                 IF JSON_LENGTH(@changed_fields) > 0 THEN
-                    ${serialized.variable}
                     ${serialized.toArray}
                     ${send}
                 END IF;
@@ -154,10 +151,9 @@ export default class TriggerCreator extends ServiceModule {
     /**
      * 用于生成序列化数据的那一段SQL。 
      * 序列化后的结果保存在 @new_data , @old_data 这几个sql变量中。    
-     * 触发类型保存在 @trigger_type
      * 数据发生改变的字段 @changed_fields
      * 
-     * 返回的结果{variable：创建各个字段的sql，changedFields:保存值发生改变了的字段的字段名, toArray：将各个字段结合成一个数组的sql}
+     * 返回的结果{changedFields:保存值发生改变了的字段的字段名, toArray：将各个字段结合成一个数组的sql}
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
@@ -183,27 +179,23 @@ export default class TriggerCreator extends ServiceModule {
         const oldData = type != TriggerType.insert ? `SELECT JSON_OBJECT(${args(false)}) INTO @old_data;` : 'set @old_data = NULL;';
 
         return {
-            variable: `
-                set @trigger_type = ${type};
+            changedFields: "set @changed_fields = JSON_ARRAY();",
+            toArray: `
                 ${newData}
                 ${oldData}
-            `,
-            changedFields: "set @changed_fields = JSON_ARRAY();",
-            toArray: "set @value = JSON_ARRAY(@trigger_type, @changed_fields, @new_data, @old_data);"
+                SET @value = JSON_ARRAY(${type}, '${schema}', '${table}', @changed_fields, @new_data, @old_data);
+            `
         }
     }
 
     /**  
      * 发送数据的那一段sql。包含错误处理
-     * 
-     * @param {string} schema 数据库名
-     * @param {String} table 表名
      */
-    private _statement_send_data(schema: string, table: String) {
+    private _statement_send_data() {
         return `
             SELECT http_post('http://localhost:2233', @value) INTO @return;
             IF @return != 200 THEN
-                CALL \`__mb__\`.\`log_error\`(CONCAT_WS('\n', '向服务器发送数据异常。', '表：[${schema}.${table}]', '返回状态码：', @return, '发送的数据：', @value));
+                CALL \`__mb__\`.\`log_error\`(CONCAT_WS('\n', '向服务器发送数据异常。', '返回状态码：', @return, '发送的数据：', @value));
             END IF; 
         `;
     }
