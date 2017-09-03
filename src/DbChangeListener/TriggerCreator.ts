@@ -22,8 +22,9 @@ export default class TriggerCreator extends ServiceModule {
         return this.services.QueryTableInfo.tableInfo;
     }
 
-    onStart(): Promise<void> {
-        return this.createInsertTrigger('test', 'test_t');
+    async onStart(): Promise<void> {
+        await this.createInsertTrigger('test', 'test_t');
+        await this.createDeleteTrigger('test', 'test_t');
         //return Promise.resolve();
     }
 
@@ -57,15 +58,29 @@ export default class TriggerCreator extends ServiceModule {
 
     /**
      * 创建删除记录触发器
+     * 创建的Trigger名称为：__mb__表名__delete__trigger
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
      * @returns {Promise<void>} 
      */
-    createDeleteTrigger(schema: string, table: String): Promise<void> {
-        return new Promise((resolve, reject) => {
+    async createDeleteTrigger(schema: string, table: String): Promise<void> {
+        this._check_table_exists(schema, table);
+        const serialized = this._statement_serialize_data(schema, table, TriggerType.delete);
+        const send = this._statement_send_data(schema, table);
+        const triggerName = `\`${schema}\`.\`__mb__${table}__delete__trigger\``;
 
-        });
+        const sql = `
+            DROP TRIGGER IF EXISTS ${triggerName};
+            CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER DELETE ON \`${table}\` FOR EACH ROW
+            BEGIN
+                ${serialized.variable}
+                ${serialized.toArray}
+                ${send}
+            END
+        `;
+
+        await this._mysqlCon.query(sql);
     }
 
     /**
