@@ -92,4 +92,18 @@ export default class MysqlConnection extends ServiceModule {
             }
         });
     }
+
+    /**
+     * 方便执行查询的promise方法，通过调用connection.query(),只返回错误与结果
+     * 
+     * @param {string} sql 
+     * @returns {Promise<any[]>} 
+     */
+    query(sql: string, param: any[] = []): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            this.connection.query(sql, param, (err, result) => {
+                err ? reject(err) : resolve(result);
+            });
+        });
+    }
 }

@@ -4,6 +4,8 @@ import MysqlDaemon from "./MySQL/MysqlDaemon";
 import MysqlConnection from "./MySQL/MysqlConnection";
 import MysqlHttpPlugin from "./MySQL/MysqlHttpPlugin";
 
+import SystemLogger from './SystemLogger/SystemLogger';
+
 import ClearTrigger from "./DbChangeListener/ClearTrigger";
 import QueryTableInfo from "./DbChangeListener/QueryTableInfo";
 import DbChangeListener from "./DbChangeListener/DbChangeListener";
@@ -17,6 +19,9 @@ const mb = new MysqlBroadcast();
 mb.registerService(new MysqlDaemon());
 mb.registerService(new MysqlConnection());
 mb.registerService(new MysqlHttpPlugin());
+
+//系统日志记录表
+mb.registerService(new SystemLogger());
 
 //表变化监听器
 mb.registerService(new QueryTableInfo());

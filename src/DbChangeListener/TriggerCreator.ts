@@ -13,8 +13,8 @@ import TriggerType from './TriggerType';
  */
 export default class TriggerCreator extends ServiceModule {
 
-    private get _connection() {
-        return (this.services.MysqlConnection as MysqlConnection).connection;
+    private get _mysqlCon() {
+        return this.services.MysqlConnection as MysqlConnection;
     }
 
     //mysql表信息
@@ -25,6 +25,47 @@ export default class TriggerCreator extends ServiceModule {
     onStart(): Promise<void> {
         return this.createInsertTrigger('test', 'test_t');
         //return Promise.resolve();
+    }
+
+    /**
+     * 创建插入记录触发器
+     * 创建的Trigger名称为：__mb__表名__insert__trigger
+     * 
+     * @param {string} schema 数据库名
+     * @param {String} table 表名
+     * @returns {Promise<void>} 
+     */
+    async createInsertTrigger(schema: string, table: String): Promise<void> {
+        this._check_table_exists(schema, table);
+        const serialized = this._statement_serialize_data(schema, table, TriggerType.insert);
+        const send = this._statement_send_data(schema, table);
+        const triggerName = `\`${schema}\`.\`__mb__${table}__insert__trigger\``;
+
+        // 不需用delimiter要来替换MySQL分隔符，否则会出错
+        const sql = `
+            DROP TRIGGER IF EXISTS ${triggerName};
+            CREATE DEFINER = CURRENT_USER TRIGGER ${triggerName} AFTER INSERT ON \`${table}\` FOR EACH ROW
+            BEGIN
+                ${serialized.variable}
+                ${serialized.toArray}
+                ${send}
+            END
+        `;
+
+        await this._mysqlCon.query(sql);
+    }
+
+    /**
+     * 创建删除记录触发器
+     * 
+     * @param {string} schema 数据库名
+     * @param {String} table 表名
+     * @returns {Promise<void>} 
+     */
+    createDeleteTrigger(schema: string, table: String): Promise<void> {
+        return new Promise((resolve, reject) => {
+
+        });
     }
 
     /**
@@ -42,55 +83,24 @@ export default class TriggerCreator extends ServiceModule {
     }
 
     /**
-     * 创建插入记录触发器
-     * 创建的Trigger名称为：__mb__表名__insert__trigger
+     * 检查要创建触发器的表是否存在，不存在就抛出异常
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
-     * @returns {Promise<void>} 
      */
-    createInsertTrigger(schema: string, table: String): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!_.has(this._tableInfo, [schema, table])) {
-                reject(new Error(`数据库[${schema}] 下的表 [${table}] 不存在，无法创建触发器`));
-            } else {
-                const serializedSQL = this._statement_serialize_data(schema, table, TriggerType.insert);
-
-                // 不需要替换MySQL分隔符，否则会出错
-                const sql = `
-                    DROP TRIGGER IF EXISTS \`${schema}\`.\`__mb__${table}__insert__trigger\`;
-                    CREATE DEFINER = CURRENT_USER TRIGGER \`${schema}\`.\`__mb__${table}__insert__trigger\` AFTER INSERT ON \`${table}\` FOR EACH ROW
-                    BEGIN
-                        ${serializedSQL.serialize}
-                        ${serializedSQL.http}
-                    END
-                `;
-
-                this._connection.query(sql, (err, result) => {
-                    err ? reject(err) : resolve(result);
-                });
-            }
-        });
+    private _check_table_exists(schema: string, table: String) {
+        if (!_.has(this._tableInfo, [schema, table])) {
+            throw new Error(`数据库[${schema}] 下的表 [${table}] 不存在，无法创建Trigger`);
+        }
     }
 
     /**
-     * 创建删除记录触发器
+     * 用于生成序列化数据的那一段SQL。 
+     * 序列化后的结果保存在 @new_data , @old_data 这几个sql变量中。    
+     * 触发类型保存在 @trigger_type
+     * 数据发生改变的字段 @changed_fields
      * 
-     * @param {string} schema 数据库名
-     * @param {String} table 表名
-     * @returns {Promise<void>} 
-     */
-    createDeleteTrigger(schema: string, table: String): Promise<void> {
-        return new Promise((resolve, reject) => {
-
-        });
-    }
-
-    /**
-     * 用于生成序列化数据的那一段SQL，和发送http数据的那一段sql。   
-     * 序列化后的结果保存在 @new_data , @old_data , @trigger_type 这几个sql变量中。    
-     * 
-     * 返回的结果{serialize：序列化数据的sql，http：发送数据的sql}
+     * 返回的结果{variable：创建各个字段的sql，toArray：将各个字段结合成一个数组的sql}
      * 
      * @param {string} schema 数据库名
      * @param {String} table 表名
@@ -112,16 +122,32 @@ export default class TriggerCreator extends ServiceModule {
         }
 
         //insert 触发器中没有old，delete触发器中没有new
-        const newData = type != TriggerType.delete ? `SELECT JSON_OBJECT(${args(true)}) INTO @new_data;` : 'set @new_data = NULL;';
+        const newData = type != TriggerType.delete ? `SELECT JSON_OBJECT(${args(true)})  INTO @new_data;` : 'set @new_data = NULL;';
         const oldData = type != TriggerType.insert ? `SELECT JSON_OBJECT(${args(false)}) INTO @old_data;` : 'set @old_data = NULL;';
 
         return {
-            serialize: `
+            variable: `
                 set @trigger_type = ${type};
+                set @changed_fields = JSON_ARRAY();
                 ${newData}
                 ${oldData}
             `,
-            http: "SELECT http_post('http://localhost:2233', JSON_ARRAY(@trigger_type, @new_data, @old_data)) INTO @N;"
+            toArray: "set @value = JSON_ARRAY(@trigger_type, @changed_fields, @new_data, @old_data);"
         }
+    }
+
+    /**  
+     * 发送数据的那一段sql。包含错误处理
+     * 
+     * @param {string} schema 数据库名
+     * @param {String} table 表名
+     */
+    private _statement_send_data(schema: string, table: String) {
+        return `
+            SELECT http_post('http://localhost:2233', @value) INTO @return;
+            IF @return != 200 THEN
+                CALL \`__mb__\`.\`log_error\`(CONCAT_WS('\n', '向服务器发送数据异常。', '表：[${schema}.${table}]', '返回状态码：', @return, '发送的数据：', @value));
+            END IF; 
+        `;
     }
 }
