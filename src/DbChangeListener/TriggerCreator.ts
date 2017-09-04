@@ -22,11 +22,8 @@ export default class TriggerCreator extends ServiceModule {
         return this.services.QueryTableInfo.tableInfo;
     }
 
-    async onStart(): Promise<void> {
-        await this.createInsertTrigger('test', 'test_t');
-        await this.createDeleteTrigger('test', 'test_t');
-        await this.createUpdateTrigger('test', 'test_t', ['id']);
-        //return Promise.resolve();
+    onStart(): Promise<void> {
+        return Promise.resolve();
     }
 
     /**

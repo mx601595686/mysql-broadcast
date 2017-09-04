@@ -26,7 +26,7 @@ export default class DbChangeListener extends ServiceModule {
     }
 
     async onStart() {
-        (this.services.ChangedDataReceiver as ChangedDataReceiver).onData = this.dispatch.bind(this);
+        (this.services.ChangedDataReceiver as ChangedDataReceiver).onData = this._dispatch.bind(this);
     }
 
     async onStop() {
@@ -55,11 +55,14 @@ export default class DbChangeListener extends ServiceModule {
         // 找到对应的位置，存放监听器
         let listener: Set<Function> = _.get(this.registeredListener, [schema, table, type, field]);
 
-        // 如果还没有注册过，就向数据库注册trigger
+        // 如果还没有注册过，就向数据库创建trigger
         if (listener === undefined) {
-            listener = new Set();
+            // 保存监听器
+            listener = new Set<Function>();
+            listener.add(callback);
             _.set(this.registeredListener, [schema, table, type, field], listener);
 
+            //向数据库创建Trigger
             switch (type) {
                 case TriggerType.insert:
                     await this._triggerCreator.createInsertTrigger(schema, table);
@@ -73,9 +76,14 @@ export default class DbChangeListener extends ServiceModule {
                     await this._triggerCreator.createUpdateTrigger(schema, table, fields);
                     break;
             }
-        }
+        } else {
+            // 检查是否已经注册过了
+            if (listener.has(callback))
+                throw new Error('相同的回调函数被重复注册');
 
-        listener.add(callback);
+            // 保存监听器
+            listener.add(callback);
+        }
     }
 
     /**
@@ -87,17 +95,9 @@ export default class DbChangeListener extends ServiceModule {
      * @param {TriggerType} type 要监听的类型
      * @param {string[]} field 如果监听的类型是update，那么还要指定要监听的字段。
      */
-    async remove(callback: (data: ChangedData) => void, schema: string, table: string, type: TriggerType, field: string) {
-        if (type === TriggerType.update) {
-            if (field === undefined)
-                throw new Error('update 类型的监听器，未提供要移除监听的字段（field）');
-            this._check_table_and_fields_exists(schema, table, field);
-        } else {
-            this._check_table_and_fields_exists(schema, table);
-            field = '-';    // 为其他触发器类型提供一个默认值
-        }
-
+    async remove(callback: (data: ChangedData) => void, schema: string, table: string, type: TriggerType, field: string = '_') {
         const listener: Set<Function> = _.get(this.registeredListener, [schema, table, type, field]);
+
         if (listener !== undefined) {
             listener.delete(callback);
 
@@ -127,7 +127,7 @@ export default class DbChangeListener extends ServiceModule {
     }
 
     // 根据收到的数据触发相应的监听器
-    private dispatch(data: ChangedData): void {
+    private _dispatch(data: ChangedData): void {
         // 用于触发监听器
         const emit = (listener: Set<Function>) => {
             if (listener) {

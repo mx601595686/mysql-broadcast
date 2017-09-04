@@ -10,6 +10,7 @@ import ClearTrigger from "./DbChangeListener/ClearTrigger";
 import QueryTableInfo from "./DbChangeListener/QueryTableInfo";
 import DbChangeListener from "./DbChangeListener/DbChangeListener";
 import TriggerCreator from "./DbChangeListener/TriggerCreator";
+import ChangedDataReceiver from "./DbChangeListener/ChangedDataReceiver";
 
 class MysqlBroadcast extends ServicesManager { }
 
@@ -27,6 +28,7 @@ mb.registerService(new SystemLogger());
 mb.registerService(new QueryTableInfo());
 mb.registerService(new ClearTrigger());
 mb.registerService(new TriggerCreator());
+mb.registerService(new ChangedDataReceiver());
 mb.registerService(new DbChangeListener());
 
 mb.start();

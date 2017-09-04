@@ -28,8 +28,11 @@ export default class ChangedDataReceiver extends ServiceModule {
                         });
 
                         //转送接收到的数据
-                        if (this.onData)
-                            this.onData(new ChangedData(body));
+                        if (this.onData === undefined) {
+                            throw new Error('没有注册数据接收回调函数onData');
+                        }
+
+                        this.onData(new ChangedData(body));
                         res.statusCode = 200;
                     } catch (err) {
                         this.emit('error', err);
@@ -54,9 +57,13 @@ export default class ChangedDataReceiver extends ServiceModule {
         return new Promise((resolve, reject) => {
             if (this._http !== undefined) {
                 this._http.close((err: Error) => {
-                    this._http = undefined;
                     err ? reject(err) : resolve();
                 });
+
+                setTimeout(() => {
+                    this._http = undefined;
+                    reject(new Error('关闭服务器超时'));
+                }, 1000);
             } else {
                 resolve();
             }
