@@ -12,6 +12,8 @@ import DbChangeListener from "./DbChangeListener/DbChangeListener";
 import TriggerCreator from "./DbChangeListener/TriggerCreator";
 import ChangedDataReceiver from "./DbChangeListener/ChangedDataReceiver";
 
+import ServicesExposer from './ServicesExposer/ServicesExposer';
+
 class MysqlBroadcast extends ServicesManager { }
 
 const mb = new MysqlBroadcast();
@@ -30,5 +32,8 @@ mb.registerService(new ClearTrigger());
 mb.registerService(new TriggerCreator());
 mb.registerService(new ChangedDataReceiver());
 mb.registerService(new DbChangeListener());
+
+//向外界提供websocket服务接口
+mb.registerService(new ServicesExposer());
 
 mb.start();
