@@ -2,7 +2,7 @@
 # FROM my-docker-image/mysql:mysql-udf-http
 
 # 使用保存在阿里云上的镜像
-FROM registry.cn-hangzhou.aliyuncs.com/wujingtao/mysql:mysql-udf-http-0.0.2
+FROM registry.cn-hangzhou.aliyuncs.com/wujingtao/mysql:udf-http-0.0.1
 
 # 安装node
 # 这个参考的是my-docker-image/nodejs/淘宝CDN.dockerfile
