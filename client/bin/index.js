@@ -1,0 +1,5 @@
+"use strict";
+const MysqlBroadcastClient_1 = require("./MysqlBroadcastClient");
+module.exports = MysqlBroadcastClient_1.default;
+
+//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGV4LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBQSxpRUFBMEQ7QUFFMUQsaUJBQVMsOEJBQW9CLENBQUMiLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgTXlzcWxCcm9hZGNhc3RDbGllbnQgZnJvbSAnLi9NeXNxbEJyb2FkY2FzdENsaWVudCc7XG5cbmV4cG9ydCA9IE15c3FsQnJvYWRjYXN0Q2xpZW50OyJdfQ==

@@ -44,7 +44,7 @@ export default abstract class BaseExportService extends ServiceModule {
                     socket.on(name, async (data: any, callback: Function) => {
                         try {
                             const result = await func(data, socket);
-                            callback(result);
+                            callback(undefined, result);
                         } catch (error) {
                             callback(error.toString());
                         }

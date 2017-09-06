@@ -1,5 +1,5 @@
 const gulp = require("gulp");
-const ts = require("gulp-typescript").createProject('../tsconfig.json');
+const ts = require("gulp-typescript").createProject('../tsconfig.json', { declaration: true, removeComments: false });
 const sourcemaps = require('gulp-sourcemaps');
 
 //编译TS代码

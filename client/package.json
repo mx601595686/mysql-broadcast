@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "description": "listen table changing. broadcast client message",
     "main": "./bin/index.js",
+    "types":"./bin/index.d.ts",
     "engines": {
         "node": ">=7.6.0"
     },
@@ -28,7 +29,7 @@
         "@types/expect.js": "^0.3.29",
         "@types/mocha": "^2.2.41",
         "@types/node": "^7.0.13",
-        "@types/socket.io": "^1.4.30",
+        "@types/socket.io-client": "^1.4.30",
         "expect.js": "^0.3.1",
         "gulp": "^3.9.1",
         "gulp-sourcemaps": "^2.4.1",
@@ -38,6 +39,8 @@
         "typescript": "^2.2.2"
     },
     "dependencies": {
-        "socket.io": "^2.0.3"
+        "@types/component-emitter": "^1.2.6",
+        "component-emitter": "^1.2.1",
+        "socket.io-client": "^2.0.3"
     }
 }
