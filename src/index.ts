@@ -12,7 +12,10 @@ import DbChangeListener from "./DbChangeListener/DbChangeListener";
 import TriggerCreator from "./DbChangeListener/TriggerCreator";
 import ChangedDataReceiver from "./DbChangeListener/ChangedDataReceiver";
 
-import ServicesExposer from './ServicesExposer/ServicesExposer';
+import WebSocket from './WebSocket/WebSocket';
+import QuerySql from './WebSocket/QuerySql';
+import Broadcast from './WebSocket/Broadcast';
+import ListenDbChanging from './WebSocket/ListenDbChanging';
 
 class MysqlBroadcast extends ServicesManager { }
 
@@ -34,6 +37,9 @@ mb.registerService(new ChangedDataReceiver());
 mb.registerService(new DbChangeListener());
 
 //向外界提供websocket服务接口
-mb.registerService(new ServicesExposer());
+mb.registerService(new WebSocket());
+mb.registerService(new QuerySql());
+mb.registerService(new Broadcast());
+mb.registerService(new ListenDbChanging());
 
 mb.start();

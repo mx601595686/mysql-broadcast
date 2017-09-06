@@ -41,11 +41,11 @@
         "typescript": "^2.2.2"
     },
     "dependencies": {
-        "eventspace": "^0.3.1",
+        "eventspace": "^0.3.2",
         "lodash": "^4.17.4",
         "mysql": "^2.14.1",
         "raw-body": "^2.3.0",
-        "service-starter": "^0.3.0",
+        "service-starter": "^0.3.1",
         "socket.io": "^2.0.3"
     }
 }
