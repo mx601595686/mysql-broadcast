@@ -1,3 +1,5 @@
+// 用于方便查看docker inspect 下的health日志内容
+
 const child_process = require('child_process');
 setInterval(() => {
     child_process.exec('docker inspect mbc', (err, stdout, stderr) => {

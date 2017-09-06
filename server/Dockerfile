@@ -1,6 +1,4 @@
 # 这个是根据my-docker-image/mysql/mysql-udf-http构建的镜像
-# FROM my-docker-image/mysql:mysql-udf-http
-
 # 使用保存在阿里云上的镜像
 FROM registry.cn-hangzhou.aliyuncs.com/wujingtao/mysql:udf-http-0.0.1
 
@@ -40,7 +38,7 @@ COPY node_modules/service-starter/docker/health_check.sh /app
 
 HEALTHCHECK \
 # 每次检查的间隔时间
-    --interval=5s \
+    --interval=10s \
 # 单次检查的超时时长
     --timeout=30s \
 # 这个可以理解为在开始正式检查之前容器所需要的启动时间

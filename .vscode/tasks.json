@@ -7,17 +7,22 @@
             // (没有权限的话，将当前用户加入到docker组中)
             "taskName": "构建镜像",
             "type": "shell",
-            "command": "docker build -t mysql-broadcast ."
+            "command": "docker build -t mysql-broadcast ./server"
         },
         {
-            "taskName": "编译",
+            "taskName": "编译server",
             "type": "shell",
-            "command": "npm run compile"
+            "command": "cd ./server && npm run compile"
+        },
+        {
+            "taskName": "编译client",
+            "type": "shell",
+            "command": "cd ./client && npm run compile"
         },
         {
             "taskName": "测试",
             "type": "shell",
-            "command": "npm run test"
+            "command": "cd ./client && npm run test"
         }
     ]
 }
