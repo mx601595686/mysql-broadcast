@@ -14,7 +14,7 @@ export default class MysqlBroadcastClient extends emitter {
     constructor(ip: string = 'localhost', port: number = 3000) {
         super();
         // 打开websocket，但不使用这个接口
-        const socket = io(`${ip}:${port}`, { autoConnect: false });
+        const socket = io(`http://${ip}:${port}`, { autoConnect: false});
         socket.on('error', this.emit.bind(this, 'error'));
         socket.on('disconnect', this.emit.bind(this, 'disconnect'));
         socket.on('connect', this.emit.bind(this, 'connect'));
