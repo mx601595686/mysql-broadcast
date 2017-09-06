@@ -56,6 +56,8 @@ export default abstract class BaseExportService extends ServiceModule {
                     this.onDisconnect(socket);
                 });
             });
+
+            resolve();
         });
     }
 
@@ -63,6 +65,7 @@ export default abstract class BaseExportService extends ServiceModule {
         return new Promise((resolve, reject) => {
             this.nsp = undefined;
             this.socketList.clear();
+            resolve();
         });
     }
 

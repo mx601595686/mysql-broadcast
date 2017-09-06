@@ -35,15 +35,9 @@ export default class WebSocket extends ServiceModule {
         return new Promise((resolve, reject) => {
             if (this._ws) {
                 this._ws.close(() => {
-                    if (this._http) {
-                        this._http.close((err: Error) => {
-                            this._ws = undefined;
-                            this._http = undefined;
-                            err ? reject(err) : resolve();
-                        });
-                    } else {
-                        resolve();
-                    }
+                    this._ws = undefined;
+                    this._http = undefined;
+                    resolve();
                 });
             } else {
                 resolve();
