@@ -18,7 +18,8 @@ export default class MysqlBroadcastClient extends emitter {
         socket.on('error', this.emit.bind(this, 'error'));
         socket.on('disconnect', this.emit.bind(this, 'disconnect'));
         socket.on('connect', this.emit.bind(this, 'connect'));
-
+        socket.open();
+        
         this.socket_QuerySql = io(`${ip}:${port}/QuerySql`, { autoConnect: false });
         this.socket_Broadcast = io(`${ip}:${port}/Broadcast`, { autoConnect: false });
         this.socket_ListenDbChanging = io(`${ip}:${port}/ListenDbChanging`, { autoConnect: false });

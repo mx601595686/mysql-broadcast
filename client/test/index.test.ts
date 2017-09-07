@@ -8,10 +8,11 @@ describe('连接服务器，并测试执行基本sql查询', function () {
     let con: MysqlBroadcastClient;
 
     before(function (done) {
-        /* con = new MysqlBroadcastClient();
+        this.timeout(20000)
+        con = new MysqlBroadcastClient();
         con.once('connect', done);
-        con.once('error', done); */
-        const socket = io(`http://localhost:3000`, { autoConnect: false});
+        con.once('error', done);
+    /*     const socket = io(`http://localhost:3000`, { autoConnect: false});
         socket.on('error',()=>{
             debugger
         });
@@ -25,7 +26,7 @@ describe('连接服务器，并测试执行基本sql查询', function () {
             done()
             debugger
         });
-        socket.open()
+        socket.open() */
     });
 
     it('测试SQL执行', async function () {

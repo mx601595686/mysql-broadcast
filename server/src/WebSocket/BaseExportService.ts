@@ -1,64 +1,41 @@
 import { log, ServiceModule } from "service-starter";
 import WebSocket from './WebSocket';
-
+import ws = require('ws');
 
 /**
  * 所有使用websocket向外提供服务的基类
  */
 export default abstract class BaseExportService extends ServiceModule {
 
-    private get _ws() {
-        return (this.services.WebSocket as WebSocket).ws;
+    protected get _sockets() {
+        return (this.services.WebSocket as WebSocket).sockets;
     }
 
     // 保存向外提供服务的方法，通过本类的export方法进行注册
     private readonly _exportMethod: Map<string, Function> = new Map();
 
-    /**
-     * 当前的socket.io命名空间，命名空间默认是服务名
-     * 
-     * @protected
-     * @type {SocketIO.Namespace}
-     */
-    protected nsp: SocketIO.Namespace | undefined;
-
-    /**
-     * 保存建立上连接的接口列表。key是socket.id
-     * 
-     * @protected
-     * @type {Map<string, SocketIO.Socket>}
-     */
-    protected socketList: Map<string, SocketIO.Socket> = new Map();
-
-    onStart(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.nsp = this._ws.of(`/${this.name}`);
-
-            this.nsp.on('connection', (socket) => {
-                this.socketList.set(socket.id, socket);
-
-                this.onConnection(socket);
-
-                // 根据暴露的服务方法名注册服务
-                for (let [name, func] of this._exportMethod.entries()) {
-                    socket.on(name, async (data: any, callback: Function) => {
-                        try {
-                            const result = await func(data, socket);
-                            callback(undefined, result);
-                        } catch (error) {
-                            callback(error.toString());
-                        }
-                    });
+    async onStart(): Promise<void> {
+        this.services.WebSocket.on('new_socket', (id: number, socket: ws) => {
+            socket.on("message", async (data: any, callback: Function) => {
+                console.log(data, callback);
+                try {
+                    const result = await func(data, socket);
+                    callback(undefined, result);
+                } catch (error) {
+                    callback(error.toString());
                 }
-
-                socket.on('disconnet', () => {
-                    this.socketList.delete(socket.id);
-                    this.onDisconnect(socket);
-                });
             });
 
-            resolve();
+            this.onConnection(id, socket);
         });
+
+        this.services.WebSocket.on('close_socket', this.onDisconnect.bind(this));
+
+        // 根据暴露的服务方法名注册服务
+        for (let [name, func] of this._exportMethod.entries()) {
+            console.log(name, func);
+
+        }
     }
 
     onStop(): Promise<void> {
@@ -86,15 +63,17 @@ export default abstract class BaseExportService extends ServiceModule {
      * 当有新的接口连接上的时候
      * 
      * @protected
-     * @param {SocketIO.Socket} socket 新的连接
+     * @param {number} id 接口的id
+     * @param {ws} socket 接口
      */
-    protected onConnection(socket: SocketIO.Socket) { }
+    protected onConnection(id: number, socket: ws) { }
 
     /**
      * 当有接口断开连接的时候
      * 
      * @protected
-     * @param {SocketIO.Socket} socket 要被断开的连接
+     * @param {number} id 接口的id
+     * @param {ws} socket 接口
      */
-    protected onDisconnect(socket: SocketIO.Socket) { }
+    protected onDisconnect(id: number, socket: ws) { }
 }
